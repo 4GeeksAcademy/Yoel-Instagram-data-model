@@ -46,6 +46,7 @@ class Users(Base):
     profile: Mapped["Profiles"] = relationship(back_populates="user")
     posts: Mapped[List["Posts"]] = relationship(secondary=association_fav_posts, back_populates="user")
     followers: Mapped[List["Users"]] = relationship(secondary=association_followers)
+    comments: Mapped[List["Comments"]] = relationship(back_populates="user")
 
 class Profiles(Base):
     __tablename__ = 'profiles'
@@ -69,6 +70,17 @@ class Posts(Base):
     image_url: Mapped[Optional[str]] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     user: Mapped["Users"] = relationship(secondary=association_fav_posts, back_populates="posts")
+    comments: Mapped[List["Comments"]] = relationship(back_populates="post")
+
+class Comments(Base):
+    __tablename__ = "comments"
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    comment: Mapped[Optional[str]]
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"))
+    
+    user: Mapped["Users"] = relationship(back_populates="comments")
+    post: Mapped["Posts"] = relationship(back_populates="comments")
 
 
 try:
