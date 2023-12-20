@@ -75,10 +75,9 @@ class Posts(Base):
 class Comments(Base):
     __tablename__ = "comments"
     id: Mapped[int] = mapped_column(primary_key=True, unique=True)
-    comment: Mapped[Optional[str]]
+    comment: Mapped[str] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     post_id: Mapped[int] = mapped_column(ForeignKey("posts.id"))
-    
     user: Mapped["Users"] = relationship(back_populates="comments")
     post: Mapped["Posts"] = relationship(back_populates="comments")
 
