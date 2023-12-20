@@ -19,6 +19,7 @@ from eralchemy2 import render_er
 class Base(DeclarativeBase):
     pass
 
+
 association_followers = Table(
     "followers",
     Base.metadata,
@@ -43,7 +44,8 @@ class Users(Base):
     email: Mapped[str] = mapped_column()
     password: Mapped[int] = mapped_column()
     profile: Mapped["Profiles"] = relationship(back_populates="user")
-    posts: Mapped[List["Posts"]] = relationship(back_populates="user")
+    posts: Mapped[List["Posts"]] = relationship(secondary=association_fav_posts, back_populates="user")
+    followers: Mapped[List["Users"]] = relationship(secondary=association_followers)
 
 class Profiles(Base):
     __tablename__ = 'profiles'
@@ -66,7 +68,7 @@ class Posts(Base):
     text: Mapped[Optional[str]] = mapped_column()
     image_url: Mapped[Optional[str]] = mapped_column()
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    user: Mapped["Users"] = relationship(back_populates="posts")
+    user: Mapped["Users"] = relationship(secondary=association_fav_posts, back_populates="posts")
 
 
 try:
