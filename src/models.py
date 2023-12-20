@@ -1,34 +1,74 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship, declarative_base
+
+
+
+from sqlalchemy import Column
+from sqlalchemy import Table
+from sqlalchemy import ForeignKey
+from sqlalchemy import Integer, String
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import relationship
+from typing import Optional
+from typing import List
 from sqlalchemy import create_engine
 from eralchemy2 import render_er
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+association_followers = Table(
+    "followers",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("follower_id", ForeignKey("users.id"), primary_key=True),
+)
+association_fav_posts = Table(
+    "favorite_posts",
+    Base.metadata,
+    Column("user_id", ForeignKey("users.id"), primary_key=True),
+    Column("post_id", ForeignKey("posts.id"), primary_key=True),
+)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
-    id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+
+
+class Users(Base):
+    __tablename__ = 'users'
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    name: Mapped[str] = mapped_column()
+    last_name: Mapped[Optional[str]] = mapped_column() 
+    user_name: Mapped[str] = mapped_column()
+    email: Mapped[str] = mapped_column()
+    password: Mapped[int] = mapped_column()
+    profile: Mapped["Profiles"] = relationship(back_populates="user")
+    posts: Mapped[List["Posts"]] = relationship(back_populates="user")
+
+class Profiles(Base):
+    __tablename__ = 'profiles'
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    name: Mapped[Optional[str]] = mapped_column()
+    last_name: Mapped[Optional[str]] = mapped_column() 
+    user_name: Mapped[str] = mapped_column()
+    image_url: Mapped[Optional[str]] = mapped_column() 
+    description: Mapped[str] = mapped_column
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True)
+    user: Mapped["Users"] = relationship(back_populates="profile", single_parent=True)
 
     def to_dict(self):
         return {}
 
-## Draw from SQLAlchemy base
+class Posts(Base):
+    __tablename__ = 'posts'
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True)
+    title: Mapped[str] = mapped_column()
+    text: Mapped[Optional[str]] = mapped_column()
+    image_url: Mapped[Optional[str]] = mapped_column()
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    user: Mapped["Users"] = relationship(back_populates="posts")
+
+
 try:
     result = render_er(Base, 'diagram.png')
     print("Success! Check the diagram.png file")
